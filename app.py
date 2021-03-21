@@ -93,7 +93,7 @@ def previous():
         result_img_name = img_names[(current_img_index - 1) % len(img_names)]
     result_tag_group = (current_tag_group - 1) % len(app.config['all_tags'])
 
-    return redirect(url_for('tag_image', img_name=result_img_name, tag_group=result_tag_group))
+    return tag_image(img_name=result_img_name, tag_group=result_tag_group)
 
 
 @app.route('/tag_image/next', methods=['GET'])
@@ -101,6 +101,7 @@ def next():
     params = request.args
     img_names = sorted(get_images_names())
     all_groups_amount = len(app.config['all_tags'])
+
     current_img_name = params['img_name']
     current_img_index = img_names.index(current_img_name)
     current_tag_group = int(params['tag_group'])
@@ -110,7 +111,7 @@ def next():
         result_img_name = img_names[(current_img_index + 1) % len(img_names)]
     result_tag_group = (current_tag_group + 1) % all_groups_amount
 
-    return redirect(url_for('tag_image', img_name=result_img_name, tag_group=result_tag_group))
+    return tag_image(img_name=result_img_name, tag_group=result_tag_group)
 
 
 @app.route('/export_to_csv', methods=['GET'])
