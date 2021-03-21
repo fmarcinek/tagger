@@ -117,11 +117,15 @@ function update_chosen_tags(chosen_tags) {
 }
 
 function subscribe_event_listeners() {
-  for (let tag_id of state.all_tags) {
-    let tag_btn = document.getElementById(tag_id);
-    tag_btn.onclick = () => {
-      add_or_delete_tag(tag_id);
-    };
+  let tag_groups = document.getElementById('tags').children;
+  for (let tag_block of tag_groups) {
+    for (let tag_btn of tag_block.children) {
+      if (tag_btn.tagName === 'LABEL') {
+        tag_btn.onclick = () => {
+          add_or_delete_tag(tag_btn.id);
+        };
+      }
+    }
   }
 
   let export_btn = document.getElementById('export_to_csv');
@@ -130,7 +134,7 @@ function subscribe_event_listeners() {
       method: 'GET',
     }).then((resp) => {
       if (resp.status === 201) {
-        alert('Csv is created successfully.')
+        alert('Csv file was created successfully.')
       }
     });
   }
