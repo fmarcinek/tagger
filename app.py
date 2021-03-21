@@ -21,6 +21,16 @@ def get_images_tags_file(img_name, tag_group):
     return app.config['images_tags_dir_path'] / tags_file_name
 
 
+def flat_all_tags(all_tags):
+    res = []
+    for tag_group in all_tags:
+        if isinstance(tag_group[0], tuple):
+            res.append([tag for tag_block in tag_group for tag in tag_block[1]])
+        else:
+            res.append(tag_group)
+    return res
+
+
 @app.route('/')
 def home():
     img_names = get_images_names()
@@ -62,7 +72,7 @@ def tag_image(img_name, tag_group=0):
             img_tags_file.touch()
 
         data = {
-            'all_tags': app.config['all_tags'][tag_group],
+            'all_tags': app.config['all_tags_flatten'][tag_group],
             'chosen_tags': chosen_tags,
             'img_name': img_name,
             'tag_group': tag_group,
@@ -126,6 +136,7 @@ if __name__ == '__main__':
 
     app.config['img_dir_path'] = pathlib.Path(args.img_dir)
     app.config['all_tags'] = parsers.parse_tags_files(app.config['img_dir_path'])
+    app.config['all_tags_flatten'] = flat_all_tags(app.config['all_tags'])
     app.config['images_tags_dir_path'] = app.config['img_dir_path'] / IMAGES_TAGS_DIR
     if not app.config['images_tags_dir_path'].exists():
         app.config['images_tags_dir_path'].mkdir()

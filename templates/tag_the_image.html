@@ -12,10 +12,10 @@
 <section class="mt-3 mb-2 mr-6">
     <div class="container">
         <div class="row">
-            <div class="col-md-4">
+            <div id="tags" class="col-md-4">
                 {% for tag_group in all_tags %}
                     {% set outer_loop = loop %}
-                    <div id="tag_group{{ loop.index0 }}" class="">
+                    <div id="tag_group{{ loop.index0 }}" class="d-none">
                         {% for tag_block in tag_group %}
                             {% if is_tag_block[outer_loop.index0][loop.index0] %}
                                 <p>{{ tag_block[0] }}:</p>

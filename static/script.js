@@ -2,7 +2,24 @@ let state = {
   img_name: null,
   tag_group: null,
   all_tags: null,
-  chosen_tags: null,
+  chosen_tags: null
+}
+
+function update_tag_group_display() {
+  for (let tag_group of document.getElementById('tags').children) {
+    tag_group.className = 'd-none';
+  }
+  document.getElementById('tag_group' + state.tag_group).className = 'd-block';
+}
+
+function update_state(json_resp) {
+  state.img_name = json_resp['img_name'];
+  state.tag_group = json_resp['tag_group'];
+  state.all_tags = json_resp['all_tags'];
+  state.chosen_tags = Object.fromEntries(json_resp['all_tags'].map(val => [val, false]));
+  update_tag_group_display();
+  update_image_source();
+  update_chosen_tags(json_resp['chosen_tags']);
 }
 
 function save() {
@@ -25,10 +42,7 @@ function next() {
     method: 'GET'
   }).then((resp) => {
     resp.json().then((json_resp) => {
-      state.img_name = json_resp['img_name'];
-      state.tag_group = json_resp['tag_group'];
-      update_image_source();
-      update_chosen_tags(json_resp['chosen_tags']);
+      update_state(json_resp);
     });
   });
 }
@@ -41,10 +55,7 @@ function previous() {
     method: 'GET'
   }).then((resp) => {
     resp.json().then((json_resp) => {
-      state.img_name = json_resp['img_name'];
-      state.tag_group = json_resp['tag_group'];
-      update_image_source();
-      update_chosen_tags(json_resp['chosen_tags']);
+      update_state(json_resp);
     });
   });
 }
@@ -69,12 +80,7 @@ function init_state() {
     method: 'GET',
   }).then((resp) => {
     resp.json().then((json_resp) => {
-      state.img_name = json_resp['img_name'];
-      state.tag_group = json_resp['tag_group'];
-      state.all_tags = json_resp['all_tags'];
-      state.chosen_tags = Object.fromEntries(json_resp['all_tags'].map(val => [val, false]));
-      update_image_source();
-      update_chosen_tags(json_resp['chosen_tags']);
+      update_state(json_resp);
       subscribe_event_listeners();
     });
   });
