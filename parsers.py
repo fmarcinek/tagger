@@ -8,7 +8,9 @@ def parse_tags_file(file_path):
         'tags': [],
     }
     with pathlib.Path(file_path).open() as f:
-        for line in f.readlines():
+        for line in f.read().splitlines():
+            if not line:
+                continue
             if line[-1] == ':':
                 if current_tags_group['group_name']:
                     tags.append((current_tags_group['group_name'], tuple(current_tags_group['tags'])))
@@ -24,7 +26,7 @@ def parse_tags_file(file_path):
                 tags.append(line)
         if current_tags_group['group_name']:
             tags.append((current_tags_group['group_name'], tuple(current_tags_group['tags'])))
-
+    return tags
 
 def parse_tags_files(dir_path):
     tags_files = [

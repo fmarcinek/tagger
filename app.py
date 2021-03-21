@@ -59,7 +59,7 @@ def tag_image(img_name, tag_group=0):
             img_tags_file.touch()
 
         data = {
-            'all_tags': app.config['all_tags'],
+            'all_tags': app.config['all_tags'][tag_group],
             'chosen_tags': chosen_tags,
             'img_name': img_name,
             'tag_group': tag_group,
