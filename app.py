@@ -4,10 +4,7 @@ from argparse import ArgumentParser
 import parsers
 
 
-TAGS_FILENAME = 'tags.txt'
 IMAGES_TAGS_DIR = 'images_tags'
-
-
 app = Flask(__name__)
 
 
@@ -19,11 +16,16 @@ def get_images_names():
     ]
 
 
+def get_images_tags_file(img_name, tag_group):
+    tags_file_name = pathlib.Path(img_name).name + 'tags' + str(tag_group) + '.txt'
+    return app.config['images_tags_dir_path'] / tags_file_name
+
+
 @app.route('/')
 def home():
     img_names = get_images_names()
     if img_names:
-        return render_template('tag_the_image.html', all_tags=app.config['all_tags'])
+        return render_template('tag_the_image.html')
     else:
         return 'No images! Run the app in the directory containing your images!', 404
 
@@ -31,7 +33,8 @@ def home():
 @app.route('/metadata')
 def metadata():
     initial_img_name = sorted(get_images_names())[0]
-    return redirect(url_for('tag_image', img_name=initial_img_name))
+    initial_tag_group = 0
+    return redirect(url_for('tag_image', img_name=initial_img_name, tag_group=initial_tag_group))
 
 
 @app.route('/image/<path:img_name>', methods=['GET'])
@@ -40,14 +43,15 @@ def image(img_name):
 
 
 @app.route('/tag_image/<path:img_name>', methods=['GET', 'POST'])
-def tag_image(img_name):
+def tag_image(img_name, tag_group=0):
     if request.method == 'POST':
-        img_tags_file = (app.config['images_tags_dir_path'] / img_name).with_suffix('.txt')
         json_data = request.get_json()
+        tag_group = json_data['tag_group']
+        img_tags_file = get_images_tags_file(img_name, tag_group)
         img_tags_file.open('w').write('\n'.join(json_data['chosen_tags']))
         return Response(status=200)
     else:
-        img_tags_file = (app.config['images_tags_dir_path'] / img_name).with_suffix('.txt')
+        img_tags_file = get_images_tags_file(img_name, tag_group)
         chosen_tags = []
         if img_tags_file.exists():
             chosen_tags = img_tags_file.open().read().split()
@@ -57,7 +61,8 @@ def tag_image(img_name):
         data = {
             'all_tags': app.config['all_tags'],
             'chosen_tags': chosen_tags,
-            'actual_img_name': img_name,
+            'img_name': img_name,
+            'tag_group': tag_group,
         }
         return json.dumps(data)
 
@@ -66,18 +71,33 @@ def tag_image(img_name):
 def previous():
     params = request.args
     img_names = sorted(get_images_names())
-    actual_img_index = img_names.index(params['actual_img_name'])
-    previous_img_name = img_names[(actual_img_index - 1) % len(img_names)]
-    return redirect(url_for('tag_image', img_name=previous_img_name))
+    current_img_name = params['img_name']
+    current_img_index = img_names.index(current_img_name)
+    current_tag_group = int(params['tag_group'])
+
+    result_img_name = current_img_name
+    if current_tag_group % len(app.config['all_tags']) == 0:
+        result_img_name = img_names[(current_img_index - 1) % len(img_names)]
+    result_tag_group = (current_tag_group - 1) % len(app.config['all_tags'])
+
+    return redirect(url_for('tag_image', img_name=result_img_name, tag_group=result_tag_group))
 
 
 @app.route('/tag_image/next', methods=['GET'])
 def next():
     params = request.args
     img_names = sorted(get_images_names())
-    actual_img_index = img_names.index(params['actual_img_name'])
-    next_img_name = img_names[(actual_img_index + 1) % len(img_names)]
-    return redirect(url_for('tag_image', img_name=next_img_name))
+    all_groups_amount = len(app.config['all_tags'])
+    current_img_name = params['img_name']
+    current_img_index = img_names.index(current_img_name)
+    current_tag_group = int(params['tag_group'])
+
+    result_img_name = current_img_name
+    if current_tag_group % all_groups_amount == all_groups_amount - 1:
+        result_img_name = img_names[(current_img_index + 1) % len(img_names)]
+    result_tag_group = (current_tag_group + 1) % all_groups_amount
+
+    return redirect(url_for('tag_image', img_name=result_img_name, tag_group=result_tag_group))
 
 
 @app.route('/export_to_csv', methods=['GET'])
@@ -102,7 +122,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     app.config['img_dir_path'] = pathlib.Path(args.img_dir)
-    app.config['all_tags'] = (app.config['img_dir_path'] / TAGS_FILENAME).open().read().split()
+    app.config['all_tags'] = parsers.parse_tags_files(app.config['img_dir_path'])
     app.config['images_tags_dir_path'] = app.config['img_dir_path'] / IMAGES_TAGS_DIR
     if not app.config['images_tags_dir_path'].exists():
         app.config['images_tags_dir_path'].mkdir()

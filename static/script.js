@@ -1,29 +1,32 @@
 let state = {
-  actual_img_name: null,
+  img_name: null,
+  tag_group: null,
   all_tags: null,
   chosen_tags: null,
 }
 
 function save() {
-  return fetch('tag_image/' + state.actual_img_name, {
+  return fetch('tag_image/' + state.img_name, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      actual_img_name: state.actual_img_name,
+      img_name: state.img_name,
+      tag_group: state.tag_group,
       chosen_tags: Object.keys(Object.fromEntries(Object.entries(state.chosen_tags).filter(([key, val]) => val)))
     }),
   });
 }
 
 function next() {
-  return fetch('tag_image/next?' + new URLSearchParams({actual_img_name: state.actual_img_name}), {
+  return fetch('tag_image/next?' + new URLSearchParams({
+    img_name: state.img_name,
+    tag_group: state.tag_group
+  }), {
     method: 'GET'
   }).then((resp) => {
     resp.json().then((json_resp) => {
-      state.actual_img_name = json_resp['actual_img_name'];
-      for (let tag of json_resp['chosen_tags']) {
-        state.chosen_tags[tag] = true;
-      }
+      state.img_name = json_resp['img_name'];
+      state.tag_group = json_resp['tag_group'];
       update_image_source();
       update_chosen_tags(json_resp['chosen_tags']);
     });
@@ -31,11 +34,15 @@ function next() {
 }
 
 function previous() {
-  return fetch('tag_image/previous?' + new URLSearchParams({actual_img_name: state.actual_img_name}), {
+  return fetch('tag_image/previous?' + new URLSearchParams({
+    img_name: state.img_name,
+    tag_group: state.tag_group
+  }), {
     method: 'GET'
   }).then((resp) => {
     resp.json().then((json_resp) => {
-      state.actual_img_name = json_resp['actual_img_name'];
+      state.img_name = json_resp['img_name'];
+      state.tag_group = json_resp['tag_group'];
       update_image_source();
       update_chosen_tags(json_resp['chosen_tags']);
     });
@@ -62,7 +69,8 @@ function init_state() {
     method: 'GET',
   }).then((resp) => {
     resp.json().then((json_resp) => {
-      state.actual_img_name = json_resp['actual_img_name'];
+      state.img_name = json_resp['img_name'];
+      state.tag_group = json_resp['tag_group'];
       state.all_tags = json_resp['all_tags'];
       state.chosen_tags = Object.fromEntries(json_resp['all_tags'].map(val => [val, false]));
       update_image_source();
@@ -74,7 +82,7 @@ function init_state() {
 
 function update_image_source() {
   let img = document.getElementById('img');
-  img.src = 'image/' + state.actual_img_name;
+  img.src = 'image/' + state.img_name;
 }
 
 function add_or_delete_tag(btn_id) {
