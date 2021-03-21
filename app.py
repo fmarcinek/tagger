@@ -25,7 +25,7 @@ def get_images_tags_file(img_name, tag_group):
 def home():
     img_names = get_images_names()
     if img_names:
-        return render_template('tag_the_image.html')
+        return render_template('tag_the_image.html', all_tags=app.config['all_tags'])
     else:
         return 'No images! Run the app in the directory containing your images!', 404
 
@@ -54,7 +54,7 @@ def tag_image(img_name, tag_group=0):
         img_tags_file = get_images_tags_file(img_name, tag_group)
         chosen_tags = []
         if img_tags_file.exists():
-            chosen_tags = img_tags_file.open().read().split()
+            chosen_tags = parsers.parse_tags_file(img_tags_file)
         else:
             img_tags_file.touch()
 

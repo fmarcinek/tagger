@@ -88,10 +88,10 @@ function update_image_source() {
 function add_or_delete_tag(btn_id) {
   let btn = document.getElementById(btn_id);
   if (btn.classList.contains('btn-outline-primary')) {
-    btn.className = "btn btn-primary";
+    btn.className = "btn btn-primary mt-1 mb-1";
     state.chosen_tags[btn_id] = true;
   } else {
-    btn.className = "btn btn-outline-primary";
+    btn.className = "btn btn-outline-primary mt-1 mb-1";
     state.chosen_tags[btn_id] = false;
   }
   save();
@@ -101,12 +101,12 @@ function update_chosen_tags(chosen_tags) {
   Object.keys(state.chosen_tags).map(key => {
     state.chosen_tags[key] = false;
     let btn = document.getElementById(key);
-    btn.className = "btn btn-outline-primary";
+    btn.className = "btn btn-outline-primary mt-1 mb-1";
   });
   for (let tag of chosen_tags) {
     state.chosen_tags[tag] = true;
     let btn = document.getElementById(tag);
-    btn.className = "btn btn-primary";
+    btn.className = "btn btn-primary mt-1 mb-1";
   }
 }
 
