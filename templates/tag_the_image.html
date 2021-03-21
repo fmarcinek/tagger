@@ -14,10 +14,18 @@
         <div class="row">
             <div class="col-md-4">
                 {% for tag_group in all_tags %}
+                    {% set outer_loop = loop %}
                     <div id="tag_group{{ loop.index0 }}" class="">
-                        {% for tag in tag_group %}
-                            <label id="{{ tag }}" class="btn btn-outline-primary mt-1 mb-1">{{ tag }}</label><br>
-                        {% endfor %}
+                        {% for tag_block in tag_group %}
+                            {% if is_tag_block[outer_loop.index0][loop.index0] %}
+                                <p>{{ tag_block[0] }}:</p>
+                                {% for tag in tag_block[1] %}
+                                    <label id="{{ tag }}" class="btn btn-outline-primary mt-1 mb-1">{{ tag }}</label><br>
+                                {% endfor %}
+                            {% else %}
+                                <label id="{{ tag_block }}" class="btn btn-outline-primary mt-1 mb-1">{{ tag_block }}</label><br>
+                            {% endif %}
+                         {% endfor %}
                     </div>
                 {% endfor %}
             </div>

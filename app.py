@@ -25,7 +25,10 @@ def get_images_tags_file(img_name, tag_group):
 def home():
     img_names = get_images_names()
     if img_names:
-        return render_template('tag_the_image.html', all_tags=app.config['all_tags'])
+        is_tag_block = [
+            [isinstance(tag_block, tuple) for tag_block in tag_group] for tag_group in app.config['all_tags']
+        ]
+        return render_template('tag_the_image.html', all_tags=app.config['all_tags'], is_tag_block=is_tag_block)
     else:
         return 'No images! Run the app in the directory containing your images!', 404
 
