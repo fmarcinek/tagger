@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, url_for, send_from_directory, json, redirect, Response
 import pathlib
 from argparse import ArgumentParser
+import parsers
 
 
 TAGS_FILENAME = 'tags.txt'
