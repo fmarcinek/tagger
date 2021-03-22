@@ -16,8 +16,7 @@ def parse_tags_file(file_path):
                     tags.append((current_tags_group['group_name'], tuple(current_tags_group['tags'])))
                     current_tags_group['group_name'] = None
                     current_tags_group['tags'] = []
-                else:
-                    current_tags_group['group_name'] = line[:-1]
+                current_tags_group['group_name'] = line[:-1]
             elif line[0] == '-':
                 if not current_tags_group['group_name']:
                     raise Exception(f'Item {repr(line)} defined beyond a group.')
