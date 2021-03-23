@@ -1,6 +1,8 @@
 from flask import Flask, render_template, request, url_for, send_from_directory, json, redirect, Response
 import pathlib
 from argparse import ArgumentParser
+from collections import defaultdict
+
 import parsers
 
 
@@ -114,18 +116,56 @@ def next():
     return tag_image(img_name=result_img_name, tag_group=result_tag_group)
 
 
+def create_column_names_row(all_tags):
+    res = ['image_name']
+    for group in all_tags:
+        for block in group:
+            if isinstance(block, tuple):
+                res.append(block[0])
+                res.extend(block[1])
+            elif isinstance(block, str):
+                res.append(block)
+            else:
+                raise Exception(f'Wrong format {block}')
+    return res
+
+
+def create_image_tags_row(image_name, chosen_tags, all_tags):
+    res = [image_name]
+    for group in all_tags:
+        for block in group:
+            if isinstance(block, tuple):
+                res.append(1 if any(t in chosen_tags for t in block[1]) else 0)
+                res.extend(1 if t in chosen_tags else 0 for t in block[1])
+            elif isinstance(block, str):
+                res.append(1 if block in chosen_tags else 0)
+            else:
+                raise Exception(f'Wrong format {block}')
+    return res
+
+
+def prepare_chosen_tags_from_tags_files():
+    image_to_chosen_tags_dict = defaultdict(list)
+    for tags_file in app.config['images_tags_dir_path'].iterdir():
+        chosen_tags = parsers.parse_tags_file(tags_file)
+        image_name = tags_file.stem[:-5]
+        image_to_chosen_tags_dict[image_name].extend(chosen_tags)
+    return image_to_chosen_tags_dict
+
+
 @app.route('/export_to_csv', methods=['GET'])
 def export_to_csv():
     import csv
-    images_tags = app.config['images_tags_dir_path']
     csv_file_path = app.config['img_dir_path'] / 'tags_table.csv'
     all_tags = app.config['all_tags']
+    image_to_chosen_tags_dict = prepare_chosen_tags_from_tags_files()
+
     with csv_file_path.open('w', newline='') as csv_file:
         writer = csv.writer(csv_file)
-        writer.writerow(['image_name'] + all_tags)
-        for tags_file in images_tags.iterdir():
-            tags = tags_file.open().read().split()
-            new_row = [tags_file.stem] + [1 if tag in tags else 0 for tag in all_tags]
+        writer.writerow(create_column_names_row(all_tags))
+        for image_name in get_images_names():
+            chosen_tags = image_to_chosen_tags_dict[image_name]
+            new_row = create_image_tags_row(image_name, chosen_tags, all_tags)
             writer.writerow(new_row)
     return Response(status=201)
 
